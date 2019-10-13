@@ -7,3 +7,4 @@ DATABASE_USER
 DATABASE_PASSWORD 
 JWT_KEY 
 
+run:   go run ./server -addr=":9999"  (where :9999 can be any address)
