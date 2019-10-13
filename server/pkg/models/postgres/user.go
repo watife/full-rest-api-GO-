@@ -55,17 +55,19 @@ func (m *UserModel) Login(email, password string) (*models.User, error) {
 
 	u := &models.User{}
 
-	err := m.DB.QueryRow(stmt, email).Scan(&u.ID, &u.Email, &u.Password)
+	row := m.DB.QueryRow(stmt, email)
+	err := row.Scan(&u.ID, &u.Email, &u.Password)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, models.ErrInvalidCredentials
-		} else {
-			return nil, err
 		}
+		return nil, err
+
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return nil, models.ErrInvalidCredentials

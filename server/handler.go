@@ -11,7 +11,7 @@ import (
 func (app *application) register(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
 
-	err := json.NewDecoder(r.Body).Decode(user)
+	json.NewDecoder(r.Body).Decode(user)
 
 	pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -32,26 +32,22 @@ func (app *application) register(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
-	err := json.NewDecoder(r.Body).Decode(user)
 
-	if err != nil {
-		var resp = map[string]interface{}{"error": "Invalid request"}
-		json.NewEncoder(w).Encode(resp)
-		return
-	}
+	json.NewDecoder(r.Body).Decode(user)
 
 	u, err := app.user.Login(user.Email, user.Password)
 
 	if err != nil {
 		app.respondError(w, http.StatusUnauthorized, err.Error())
+		return
 	}
 
-	valide, err := app.GenerateJWT(u)
+	valideToken, err := app.GenerateJWT(u.ID)
 
 	tk := &models.Token{
 		UserID: u.ID,
 		Email:  u.Email,
-		Token:  valide,
+		Token:  valideToken,
 	}
 
 	json.NewEncoder(w).Encode(tk)

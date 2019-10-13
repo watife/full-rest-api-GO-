@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fakorede-bolu/full-rest-api/server/pkg/models"
 	"fmt"
 	"net/http"
 	"os"
@@ -25,31 +24,27 @@ func (app *application) respondJSON(w http.ResponseWriter, status int, payload i
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(payload)
+	return
 }
 
 // respond Error
 func (app *application) respondError(w http.ResponseWriter, code int, message string) {
 	app.respondJSON(w, code, map[string]string{"error": message})
+	return
 }
 
 // Generate JWT
-func (app *application) GenerateJWT(user *models.User) (string, error) {
+func (app *application) GenerateJWT(userID int) (string, error) {
 	jwtKey := os.Getenv("JWT_KEY")
 
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
+	// claims := jwt.MapClaims{}
 
 	claims["authorized"] = true
-	claims["id"] = &user.ID
-	claims["email"] = &user.Email
+	claims["id"] = userID
 	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
 
-	tokenString, err := token.SignedString([]byte(jwtKey))
-
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
+	return token.SignedString([]byte(jwtKey))
 }
