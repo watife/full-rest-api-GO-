@@ -3,21 +3,23 @@ package main
 import (
 	"encoding/json"
 	"fakorede-bolu/full-rest-api/server/pkg/models"
+	"fmt"
 	"net/http"
-
-	"golang.org/x/crypto/bcrypt"
+	"strconv"
 )
+
+// ForgetPassword struct
+type ForgetPassword struct {
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
 
 func (app *application) register(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
 
 	json.NewDecoder(r.Body).Decode(user)
 
-	pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		app.respondError(w, http.StatusBadRequest, err.Error())
-		return
-	}
+	pass := app.hashPassword(w, user.Password)
 
 	user.Password = string(pass)
 
@@ -25,6 +27,7 @@ func (app *application) register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		app.respondError(w, http.StatusUnauthorized, err.Error())
+		return
 	}
 
 	json.NewEncoder(w).Encode(u)
@@ -42,7 +45,7 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valideToken, err := app.GenerateJWT(u.ID)
+	valideToken, err := app.generateJWT(u.ID)
 
 	tk := &models.Token{
 		UserID: u.ID,
@@ -51,4 +54,33 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(tk)
+}
+
+func (app *application) forgetPassword(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.URL.Query().Get(":id"))
+
+	fmt.Println(id)
+
+	if err != nil || id < 1 {
+		app.respondError(w, http.StatusNotFound, "The specified User not found")
+		return
+	}
+
+	pass := &ForgetPassword{}
+
+	json.NewDecoder(r.Body).Decode(pass)
+
+	newPasswordHash := app.hashPassword(w, pass.NewPassword)
+
+	pass.NewPassword = string(newPasswordHash)
+
+	resp, err := app.user.Update(id, pass.OldPassword, pass.NewPassword)
+
+	if err != nil {
+		app.respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	app.respondJSON(w, http.StatusOK, resp)
+	return
 }

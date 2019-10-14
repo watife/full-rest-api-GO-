@@ -23,7 +23,7 @@ func (m *UserModel) Register(email, password string) (*models.User, error) {
 
 	u := &models.User{}
 
-	result, err := m.DB.Query(stmt, email, password)
+	row, err := m.DB.Query(stmt, email, password)
 
 	if err != nil {
 		var pgError *pq.Error
@@ -37,10 +37,10 @@ func (m *UserModel) Register(email, password string) (*models.User, error) {
 		return nil, err
 	}
 
-	defer result.Close()
+	defer row.Close()
 
-	for result.Next() {
-		if err := result.Scan(&u.ID, &u.Email); err != nil {
+	for row.Next() {
+		if err := row.Scan(&u.ID, &u.Email); err != nil {
 			return nil, err
 		}
 	}
@@ -51,19 +51,11 @@ func (m *UserModel) Register(email, password string) (*models.User, error) {
 // Login : Get a Registered User.
 //  Method: POST
 func (m *UserModel) Login(email, password string) (*models.User, error) {
-	stmt := `SELECT * FROM users WHERE email = $1`
 
-	u := &models.User{}
-
-	row := m.DB.QueryRow(stmt, email)
-	err := row.Scan(&u.ID, &u.Email, &u.Password)
+	u, err := m.GetByEmail(email, password)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, models.ErrInvalidCredentials
-		}
-		return nil, err
-
+		return nil, models.ErrInvalidCredentials
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
@@ -79,13 +71,81 @@ func (m *UserModel) Login(email, password string) (*models.User, error) {
 	return u, nil
 }
 
+// GetByEmail  : Get a Registered User.
+func (m *UserModel) GetByEmail(email, password string) (*models.User, error) {
+	stmt := `SELECT * FROM users WHERE email = $1`
+
+	u := &models.User{}
+
+	row := m.DB.QueryRow(stmt, email)
+	err := row.Scan(&u.ID, &u.Email, &u.Password)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, models.ErrInvalidCredentials
+		}
+		return nil, err
+
+	}
+
+	return u, nil
+}
+
+// GetByID : Get a Registered User.
+func (m *UserModel) GetByID(id int) (*models.User, error) {
+	stmt := `SELECT * FROM users WHERE id = $1`
+
+	u := &models.User{}
+
+	row := m.DB.QueryRow(stmt, id)
+	err := row.Scan(&u.ID, &u.Email, &u.Password)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, models.ErrInvalidCredentials
+		}
+		return nil, err
+
+	}
+
+	return u, nil
+}
+
 // Update : Update a single User.
 //  Method: PUT/PATCH
 //  Params: True (id)
-func (m *UserModel) Update(title string) (*models.User, error) {
-	fmt.Println("not implemented")
+func (m *UserModel) Update(id int, oldPassword, password string) (string, error) {
+	stmt := `UPDATE users SET password = $2 WHERE id = $1;`
 
-	return nil, nil
+	// u := &models.User{}
+
+	u, err := m.GetByID(id)
+
+	fmt.Println(oldPassword)
+
+	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(oldPassword))
+
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return "", models.ErrInvalidCredentials
+		}
+		return "", bcrypt.ErrHashTooShort
+	}
+
+	row, err := m.DB.Exec(stmt, id, password)
+
+	if err != nil {
+		return "", models.ErrInvalidCredentials
+	}
+
+	count, err := row.RowsAffected()
+	if err != nil {
+		return "", models.ErrInvalidCredentials
+	}
+
+	fmt.Println(count)
+
+	return "success: password updated successfully", nil
 }
 
 // Destroy : Remove a single todo.
