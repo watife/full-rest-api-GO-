@@ -121,7 +121,9 @@ func (m *UserModel) Update(id int, oldPassword, password string) (string, error)
 
 	u, err := m.GetByID(id)
 
-	fmt.Println(oldPassword)
+	if err != nil {
+		return "", models.ErrInvalidCredentials
+	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(oldPassword))
 
@@ -132,18 +134,11 @@ func (m *UserModel) Update(id int, oldPassword, password string) (string, error)
 		return "", bcrypt.ErrHashTooShort
 	}
 
-	row, err := m.DB.Exec(stmt, id, password)
+	_, err = m.DB.Exec(stmt, id, password)
 
 	if err != nil {
 		return "", models.ErrInvalidCredentials
 	}
-
-	count, err := row.RowsAffected()
-	if err != nil {
-		return "", models.ErrInvalidCredentials
-	}
-
-	fmt.Println(count)
 
 	return "success: password updated successfully", nil
 }

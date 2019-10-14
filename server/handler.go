@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fakorede-bolu/full-rest-api/server/pkg/models"
-	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -15,9 +14,16 @@ type ForgetPassword struct {
 }
 
 func (app *application) register(w http.ResponseWriter, r *http.Request) {
-	user := &models.User{}
+	decoder := json.NewDecoder(r.Body)
 
-	json.NewDecoder(r.Body).Decode(user)
+	var user models.User
+
+	err := decoder.Decode(&user)
+
+	if err != nil {
+		app.respondError(w, http.StatusUnprocessableEntity, "Invalid JSON")
+		return
+	}
 
 	pass := app.hashPassword(w, user.Password)
 
@@ -34,9 +40,21 @@ func (app *application) register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
-	user := &models.User{}
+	decoder := json.NewDecoder(r.Body)
 
-	json.NewDecoder(r.Body).Decode(user)
+	var user models.User
+
+	err := decoder.Decode(&user)
+
+	if err != nil {
+		app.respondError(w, http.StatusUnprocessableEntity, "Invalid JSON")
+		return
+	}
+
+	if ok, errors := app.validateInputs(user); !ok {
+		app.validationError(w, http.StatusBadRequest, errors)
+		return
+	}
 
 	u, err := app.user.Login(user.Email, user.Password)
 
@@ -59,8 +77,6 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 func (app *application) forgetPassword(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get(":id"))
 
-	fmt.Println(id)
-
 	if err != nil || id < 1 {
 		app.respondError(w, http.StatusNotFound, "The specified User not found")
 		return
@@ -68,7 +84,12 @@ func (app *application) forgetPassword(w http.ResponseWriter, r *http.Request) {
 
 	pass := &ForgetPassword{}
 
-	json.NewDecoder(r.Body).Decode(pass)
+	err = json.NewDecoder(r.Body).Decode(pass)
+
+	if err != nil {
+		app.respondError(w, http.StatusUnprocessableEntity, "Invalid JSON")
+		return
+	}
 
 	newPasswordHash := app.hashPassword(w, pass.NewPassword)
 
