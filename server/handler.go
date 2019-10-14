@@ -7,12 +7,6 @@ import (
 	"strconv"
 )
 
-// ForgetPassword struct
-type ForgetPassword struct {
-	OldPassword string `json:"oldPassword"`
-	NewPassword string `json:"newPassword"`
-}
-
 func (app *application) register(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 
@@ -20,8 +14,8 @@ func (app *application) register(w http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&user)
 
-	if err != nil {
-		app.respondError(w, http.StatusUnprocessableEntity, "Invalid JSON")
+	if ok, errors := app.validateInputs(user); !ok {
+		app.validationError(w, http.StatusUnprocessableEntity, errors)
 		return
 	}
 
@@ -40,19 +34,15 @@ func (app *application) register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
+
 	decoder := json.NewDecoder(r.Body)
 
 	var user models.User
 
 	err := decoder.Decode(&user)
 
-	if err != nil {
-		app.respondError(w, http.StatusUnprocessableEntity, "Invalid JSON")
-		return
-	}
-
 	if ok, errors := app.validateInputs(user); !ok {
-		app.validationError(w, http.StatusBadRequest, errors)
+		app.validationError(w, http.StatusUnprocessableEntity, errors)
 		return
 	}
 
@@ -82,12 +72,14 @@ func (app *application) forgetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pass := &ForgetPassword{}
+	decoder := json.NewDecoder(r.Body)
 
-	err = json.NewDecoder(r.Body).Decode(pass)
+	var pass models.ForgetPassword
 
-	if err != nil {
-		app.respondError(w, http.StatusUnprocessableEntity, "Invalid JSON")
+	err = decoder.Decode(&pass)
+
+	if ok, errors := app.validateInputs(pass); !ok {
+		app.validationError(w, http.StatusUnprocessableEntity, errors)
 		return
 	}
 

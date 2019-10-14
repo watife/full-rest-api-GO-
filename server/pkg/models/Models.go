@@ -24,8 +24,8 @@ type Todo struct {
 // User Struct
 type User struct {
 	ID       int    `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `validate:"required,email"`
+	Password string `validate:"required"`
 }
 
 //Token struct declaration
@@ -33,4 +33,10 @@ type Token struct {
 	UserID int    `json:"userId"`
 	Email  string `json:"email"`
 	Token  string `json:"token"`
+}
+
+// ForgetPassword struct
+type ForgetPassword struct {
+	OldPassword string `validate:"required"`
+	NewPassword string `validate:"required"`
 }
