@@ -9,6 +9,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // server error
@@ -33,8 +34,19 @@ func (app *application) respondError(w http.ResponseWriter, code int, message st
 	return
 }
 
+// Hash Passwords
+func (app *application) hashPassword(w http.ResponseWriter, userPassword string) []byte {
+	pass, err := bcrypt.GenerateFromPassword([]byte(userPassword), bcrypt.DefaultCost)
+	if err != nil {
+		app.respondError(w, http.StatusBadRequest, err.Error())
+		return nil
+	}
+
+	return pass
+}
+
 // Generate JWT
-func (app *application) GenerateJWT(userID int) (string, error) {
+func (app *application) generateJWT(userID int) (string, error) {
 	jwtKey := os.Getenv("JWT_KEY")
 
 	token := jwt.New(jwt.SigningMethodHS256)

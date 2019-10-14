@@ -14,23 +14,23 @@ var (
 
 // Todo Struct
 type Todo struct {
-	ID      int
-	Content string
-	UserID  int
+	ID      int    `json:"id"`
+	Content string `json:"content"`
+	UserID  int    `json:"userId"`
 	Created time.Time
 	Edited  time.Time
 }
 
 // User Struct
 type User struct {
-	ID       int
-	Email    string
-	Password string
+	ID       int    `json:"id"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 //Token struct declaration
 type Token struct {
-	UserID int
-	Email  string
-	Token  string
+	UserID int    `json:"userId"`
+	Email  string `json:"email"`
+	Token  string `json:"token"`
 }
