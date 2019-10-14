@@ -10,6 +10,7 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type application struct {
@@ -26,7 +27,11 @@ func init() {
 	}
 }
 
+var validate *validator.Validate
+
 func main() {
+
+	validate = validator.New()
 
 	databaseName := os.Getenv("DATABASE_NAME")
 	databaseUser := os.Getenv("DATABASE_USER")
