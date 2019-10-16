@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	utils "fakorede-bolu/full-rest-api/server/pkg/Utils"
 	"fmt"
+	"html/template"
 	"net/http"
+	"net/smtp"
 	"os"
 	"reflect"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 
@@ -71,9 +76,9 @@ func (app *application) generateJWT(userID int) (string, error) {
 }
 
 /*
-* --------------------------Validators----------------------------------------
-*
- */
+ * --------------------------Validators----------------------------------------
+ *
+**/
 
 func (app *application) validateInputs(dataSet interface{}) (bool, map[string]string) {
 	err := validate.Struct(dataSet)
@@ -120,4 +125,80 @@ func (app *application) validateInputs(dataSet interface{}) (bool, map[string]st
 		return false, errors
 	}
 	return true, nil
+}
+
+/*
+ * ---------------------------Send Email----------------------------
+ *
+**/
+
+// EmailUser struct
+type EmailUser struct {
+	Username    string
+	Password    string
+	EmailServer string
+	Port        int
+}
+
+// SMTPTemplateData struct
+type SMTPTemplateData struct {
+	Name  string
+	Email string
+	ID    int
+}
+
+func (app *application) sendEmail(m *utils.Email) (bool, error) {
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return false, err
+	}
+
+	gmailUsername := os.Getenv("GMAIL_USERNAME")
+	gmailPassword := os.Getenv("GMAIL_PASSWORD")
+	gmailServer := "smtp.gmail.com"
+
+	var doc bytes.Buffer
+
+	smtpData := &SMTPTemplateData{
+		Name:  gmailUsername,
+		Email: m.Name,
+		ID:    m.ID,
+	}
+
+	emailUser := &EmailUser{gmailUsername, gmailPassword, gmailServer, 587}
+
+	auth := smtp.PlainAuth("",
+		emailUser.Username,
+		emailUser.Password,
+		emailUser.EmailServer,
+	)
+
+	t, err := template.ParseFiles(wd + "/server/ui/html/" + m.URL)
+
+	if err != nil {
+		return false, err
+	}
+
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+
+	doc.Write([]byte(fmt.Sprintf("Subject:"+m.Subject+"\n%s\n\n", mime)))
+
+	err = t.Execute(&doc, smtpData)
+
+	if err != nil {
+		return false, err
+	}
+
+	err = smtp.SendMail(emailUser.EmailServer+":"+strconv.Itoa(emailUser.Port),
+		auth,
+		emailUser.Username,
+		[]string{m.Name},
+		doc.Bytes())
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+
 }
