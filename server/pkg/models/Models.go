@@ -40,3 +40,7 @@ type ForgetPassword struct {
 	OldPassword string `validate:"required"`
 	NewPassword string `validate:"required"`
 }
+
+// SendEmail Struct
+type SendEmail struct {
+}
