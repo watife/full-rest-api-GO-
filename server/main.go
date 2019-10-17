@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fakorede-bolu/full-rest-api/server/pkg/models/postgres"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -35,9 +36,14 @@ func main() {
 
 	databaseName := os.Getenv("DATABASE_NAME")
 	databaseUser := os.Getenv("DATABASE_USER")
+	databaseHost := os.Getenv("DATABASE_HOST")
+	// databasePort := os.Getenv("DATABASE_PORT")
 	databasePassword := os.Getenv("DATABASE_PASSWORD")
 
-	dbConn := "postgres://" + databaseUser + ":" + databasePassword + "@localhost/" + databaseName + "?sslmode=disable"
+	// dbConn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", databaseHost, databasePort, databaseUser, databaseName, databasePassword)
+	dbConn := "postgres://" + databaseUser + ":" + databasePassword + "@" + databaseHost + ":5432/" + databaseName + "?sslmode=disable"
+
+	fmt.Println(dbConn)
 
 	// dynamic http address from command-line flag with default :4000
 	addr := flag.String("addr", ":4000", "HTTP network address")
