@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fakorede-bolu/full-rest-api/server/pkg/models"
 	"fmt"
+	"log"
+	"os"
 	"strings"
 
 	"github.com/lib/pq"
@@ -16,9 +18,43 @@ type UserModel struct {
 	DB *sql.DB
 }
 
+func (m *UserModel) createTable() error {
+	env := os.Getenv("APP_ENV")
+
+	d := `DROP TABLE users;`
+
+	c := `CREATE TABLE users (
+			id serial PRIMARY KEY,
+			email text UNIQUE NOT NULL,
+			password varchar(100) NOT NULL
+		);`
+
+	if env == "development" {
+		_, err := m.DB.Exec(d)
+
+		_, err = m.DB.Exec(c)
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	_, err := m.DB.Exec(c)
+
+	if err != nil {
+		return err
+	}
+
+	log.Println("table user create successfully")
+	return nil
+}
+
 // Register : Create/save a new User.
 //  Method: POST
 func (m *UserModel) Register(email, password string) (*models.User, error) {
+	m.createTable()
 	stmt := `INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email;`
 
 	u := &models.User{}

@@ -148,12 +148,6 @@ type SMTPTemplateData struct {
 }
 
 func (app *application) sendEmail(m *utils.Email) (bool, error) {
-	wd, err := os.Getwd()
-
-	if err != nil {
-		return false, err
-	}
-
 	gmailUsername := os.Getenv("GMAIL_USERNAME")
 	gmailPassword := os.Getenv("GMAIL_PASSWORD")
 	gmailServer := "smtp.gmail.com"
@@ -174,7 +168,7 @@ func (app *application) sendEmail(m *utils.Email) (bool, error) {
 		emailUser.EmailServer,
 	)
 
-	t, err := template.ParseFiles(wd + "/server/ui/html/" + m.URL)
+	t, err := template.ParseFiles("././templates/" + m.URL)
 
 	if err != nil {
 		return false, err

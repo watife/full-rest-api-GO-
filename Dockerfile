@@ -25,7 +25,6 @@ COPY . .
 
 # Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./server/*go
-# RUN go build ./server -o main .
 
 # Start a new stage from scratch
 FROM alpine:latest
@@ -33,12 +32,18 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
-# Copy the Pre-built binary file from the previous stage. Observe we also copied the .env file
+# Copy the Pre-built binary file from the previous stage.
 COPY --from=builder /app/main .
-COPY --from=builder /app/.env .       
+COPY --from=builder /app/.env .
+COPY --from=builder /app/templates ./templates
+     
 
 # Expose port 4000 to the outside world
 EXPOSE 4000
 
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.2.1/wait /wait
+
+RUN chmod +x /wait
+
 #Command to run the executable
-CMD ["./main"]
+CMD "/wait" && "./main"
