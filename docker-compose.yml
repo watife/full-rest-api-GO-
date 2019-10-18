@@ -1,22 +1,7 @@
 version: '3'
 services:
-  app:
-    container_name: full-rest-api
-    build: .
-    ports: 
-      - 4000:4000
-    restart: on-failure
-    volumes:
-      - api:/usr/src/app/
-    depends_on:
-      - fullstack-postgres        
-    networks:
-      - fullstack
-
-
   fullstack-postgres:
-    image: postgres:latest
-    container_name: db_postgres
+    image: postgres
     environment:
       - POSTGRES_USER=${DATABASE_USER}  
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
@@ -24,16 +9,17 @@ services:
       - DATABASE_HOST=${DATABASE_HOST}
     ports:
       - 5432:5432
+  app:
+    container_name: full-rest-api
+    build: .
     volumes:
-      - database_postgres:/var/lib/postgresql/data
-    networks:
-      - fullstack
-
+      - api:/usr/src/app/
+    ports:
+      - "4000:4000"
+    depends_on:
+      - fullstack-postgres
+    environment:
+      WAIT_HOSTS: ${DATABASE_HOST}:5432
 volumes:
   api:
   database_postgres:
-
-# Networks to be created to facilitate communication between containers
-networks:
-  fullstack:
-    driver: bridge
