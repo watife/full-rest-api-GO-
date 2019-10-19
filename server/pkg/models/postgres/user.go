@@ -21,18 +21,19 @@ type UserModel struct {
 func (m *UserModel) createTable() error {
 	env := os.Getenv("APP_ENV")
 
-	d := `DROP TABLE users;`
+	// d := `DROP TABLE users;`
 
 	c := `CREATE TABLE users (
 			id serial PRIMARY KEY,
 			email text UNIQUE NOT NULL,
-			password varchar(100) NOT NULL
+			password varchar(100) NOT NULL,
+			role text NOT NULL
 		);`
 
 	if env == "development" {
-		_, err := m.DB.Exec(d)
+		// _, err := m.DB.Exec(d)
 
-		_, err = m.DB.Exec(c)
+		_, err := m.DB.Exec(c)
 
 		if err != nil {
 			return err
@@ -53,13 +54,13 @@ func (m *UserModel) createTable() error {
 
 // Register : Create/save a new User.
 //  Method: POST
-func (m *UserModel) Register(email, password string) (*models.User, error) {
+func (m *UserModel) Register(email, password, role string) (*models.User, error) {
 	m.createTable()
-	stmt := `INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email;`
+	stmt := `INSERT INTO users (email, password, role) VALUES ($1, $2, $3) RETURNING id, email, role;`
 
 	u := &models.User{}
 
-	row, err := m.DB.Query(stmt, email, password)
+	row, err := m.DB.Query(stmt, email, password, role)
 
 	if err != nil {
 		var pgError *pq.Error
@@ -76,7 +77,7 @@ func (m *UserModel) Register(email, password string) (*models.User, error) {
 	defer row.Close()
 
 	for row.Next() {
-		if err := row.Scan(&u.ID, &u.Email); err != nil {
+		if err := row.Scan(&u.ID, &u.Email, &u.Role); err != nil {
 			return nil, err
 		}
 	}
@@ -114,7 +115,7 @@ func (m *UserModel) GetByEmail(email, password string) (*models.User, error) {
 	u := &models.User{}
 
 	row := m.DB.QueryRow(stmt, email)
-	err := row.Scan(&u.ID, &u.Email, &u.Password)
+	err := row.Scan(&u.ID, &u.Email, &u.Password, &u.Role)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -134,7 +135,7 @@ func (m *UserModel) GetByID(id int) (*models.User, error) {
 	u := &models.User{}
 
 	row := m.DB.QueryRow(stmt, id)
-	err := row.Scan(&u.ID, &u.Email, &u.Password)
+	err := row.Scan(&u.ID, &u.Email, &u.Password, &u.Role)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

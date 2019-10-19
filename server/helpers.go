@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	utils "fakorede-bolu/full-rest-api/server/pkg/Utils"
+	"fakorede-bolu/full-rest-api/server/pkg/models"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -60,17 +61,21 @@ func (app *application) hashPassword(w http.ResponseWriter, userPassword string)
 }
 
 // Generate JWT
-func (app *application) generateJWT(userID int) (string, error) {
+func (app *application) generateJWT(userID int, role string) (string, error) {
 	jwtKey := os.Getenv("JWT_KEY")
 
-	token := jwt.New(jwt.SigningMethodHS256)
+	exp := time.Now().Add(time.Minute * 30).Unix()
 
-	claims := token.Claims.(jwt.MapClaims)
-	// claims := jwt.MapClaims{}
+	tk := &models.Token{
+		UserID:     userID,
+		Role:       role,
+		Authorized: true,
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: exp,
+		},
+	}
 
-	claims["authorized"] = true
-	claims["id"] = userID
-	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
 
 	return token.SignedString([]byte(jwtKey))
 }
@@ -128,7 +133,7 @@ func (app *application) validateInputs(dataSet interface{}) (bool, map[string]st
 }
 
 /*
- * ---------------------------Send Email----------------------------
+ * ---------------------------Send Email-----------------------------------------
  *
 **/
 
