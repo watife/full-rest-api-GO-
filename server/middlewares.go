@@ -3,8 +3,15 @@ package main
 import (
 
 	// u "fakorede-bolu/full-rest-api/server/pkg/utils"
+
+	"context"
+	"fakorede-bolu/full-rest-api/server/pkg/models"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 func secureHeaders(next http.Handler) http.Handler {
@@ -18,12 +25,14 @@ func secureHeaders(next http.Handler) http.Handler {
 }
 
 func (app *application) logRequest(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		app.infoLog.Printf("%s - %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
 
 		next.ServeHTTP(w, r)
 
-	})
+	}
+
+	return http.HandlerFunc(fn)
 }
 
 func (app *application) recoverPanic(next http.Handler) http.Handler {
@@ -38,4 +47,71 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+/**
+ *
+ *--------------------------------Authenticated-------------------------------
+ */
+
+type contextKey string
+
+const contextKeyIsAuthenticated = contextKey("isAuthenticated")
+
+func (app *application) verifyUserToken(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		headers := r.Header
+
+		accessJWT := headers.Get("Cf-Access-Jwt-Assertion")
+
+		accessJWT = strings.TrimSpace(accessJWT)
+
+		if accessJWT == "" {
+			app.respondError(w, http.StatusUnauthorized, "unauthorized")
+			return
+		}
+
+		tk := &models.Token{}
+
+		token, err := jwt.Parse(accessJWT, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(os.Getenv("JWT_KEY")), nil
+		})
+
+		if err != nil {
+			app.respondError(w, http.StatusForbidden, err.Error())
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+
+		if ok && token.Valid {
+			role, err := claims["role"].(string)
+
+			if err != true || role != "user" {
+				app.respondError(w, http.StatusForbidden, "Unauthorized")
+				return
+			}
+		}
+
+		ctx := context.WithValue(r.Context(), contextKeyIsAuthenticated, tk)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+	return http.HandlerFunc(fn)
+}
+
+func (app *application) verifyAdminToken(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		headers := r.Header
+
+		accessJWT := headers.Get("Cf-Access-Jwt-Assertion")
+
+		if accessJWT == "" {
+			app.respondError(w, http.StatusUnauthorized, "unauthorized")
+			return
+		}
+	}
+	return http.HandlerFunc(fn)
 }

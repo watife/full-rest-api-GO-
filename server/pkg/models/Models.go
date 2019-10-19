@@ -3,6 +3,8 @@ package models
 import (
 	"errors"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 // ErrNoRecord
@@ -26,13 +28,22 @@ type User struct {
 	ID       int    `json:"id"`
 	Email    string `validate:"required,email"`
 	Password string `validate:"required"`
+	Role     string `validate:"required"`
+}
+
+// UserLogin Struct
+type UserLogin struct {
+	Email    string `validate:"required,email"`
+	Password string `validate:"required"`
 }
 
 //Token struct declaration
 type Token struct {
-	UserID int    `json:"userId"`
-	Email  string `json:"email"`
-	Token  string `json:"token"`
+	UserID     int    `json:"userId"`
+	Email      string `json:"email"`
+	Role       string `json:"role"`
+	Authorized bool   `json:"Authorized"`
+	*jwt.StandardClaims
 }
 
 // ForgetPassword struct

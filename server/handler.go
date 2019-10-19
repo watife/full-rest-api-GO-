@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	utils "fakorede-bolu/full-rest-api/server/pkg/Utils"
 	"fakorede-bolu/full-rest-api/server/pkg/models"
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -25,7 +26,7 @@ func (app *application) register(w http.ResponseWriter, r *http.Request) {
 
 	user.Password = string(pass)
 
-	u, err := app.user.Register(user.Email, user.Password)
+	u, err := app.user.Register(user.Email, user.Password, user.Role)
 
 	if err != nil {
 		app.respondError(w, http.StatusUnauthorized, err.Error())
@@ -66,7 +67,7 @@ func (app *application) confirmRegister(w http.ResponseWriter, r *http.Request) 
 
 	user.Password = string(pass)
 
-	u, err := app.user.Register(user.Email, user.Password)
+	u, err := app.user.Register(user.Email, user.Password, user.Role)
 
 	if err != nil {
 		app.respondError(w, http.StatusUnauthorized, err.Error())
@@ -78,7 +79,7 @@ func (app *application) confirmRegister(w http.ResponseWriter, r *http.Request) 
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
 
-	var user models.User
+	var user models.UserLogin
 
 	decoder := json.NewDecoder(r.Body)
 
@@ -89,22 +90,43 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := app.user.Login(user.Email, user.Password)
+	u, err := app.findUser(user.Email, user.Password)
 
 	if err != nil {
 		app.respondError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
+	json.NewEncoder(w).Encode(u)
+}
 
-	valideToken, err := app.generateJWT(u.ID)
+func (app *application) findUser(email, password string) (map[string]interface{}, error) {
 
-	tk := &models.Token{
-		UserID: u.ID,
-		Email:  u.Email,
-		Token:  valideToken,
+	resp := make(map[string]interface{})
+
+	u, err := app.user.Login(email, password)
+
+	if err != nil {
+		fmt.Println(1, err)
+		return nil, err
 	}
 
-	json.NewEncoder(w).Encode(tk)
+	valideToken, err := app.generateJWT(u.ID, u.Role)
+
+	if err != nil {
+		fmt.Println(2, err)
+		return nil, err
+	}
+
+	u = &models.User{
+		ID:    u.ID,
+		Email: u.Email,
+		Role:  u.Role,
+	}
+
+	resp["user"] = u
+	resp["token"] = valideToken
+
+	return resp, nil
 }
 
 func (app *application) forgetPassword(w http.ResponseWriter, r *http.Request) {
