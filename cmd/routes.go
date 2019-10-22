@@ -8,7 +8,7 @@ import (
 )
 
 func (app *application) routes() http.Handler {
-	standardMiddleware := alice.New(app.recoverPanic, app.logRequest)
+	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 
 	authUserMiddleware := alice.New(app.verifyUserToken)
 

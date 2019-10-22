@@ -1,13 +1,15 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
-	"fakorede-bolu/full-rest-api/server/pkg/models/postgres"
+	"fakorede-bolu/full-rest-api/pkg/models/postgres"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -69,6 +71,11 @@ func main() {
 
 	defer db.Close()
 
+	tlsConfig := &tls.Config{
+		PreferServerCipherSuites: true,
+		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
+
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
@@ -78,14 +85,20 @@ func main() {
 
 	// custom server struct to make use of custom errorLog
 	srv := &http.Server{
-		Addr:     *addr,
-		ErrorLog: errorLog,
-		Handler:  app.routes(),
+		Addr:           *addr,
+		ErrorLog:       errorLog,
+		Handler:        app.routes(),
+		TLSConfig:      tlsConfig,
+		IdleTimeout:    time.Minute,
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 524288,
 	}
 
 	// Listen to server
 	infoLog.Printf("Starting server on %s", *addr)
-	err = srv.ListenAndServe()
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	// err = srv.ListenAndServe()
 
 	errorLog.Fatal(err)
 }

@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"errors"
-	"fakorede-bolu/full-rest-api/server/pkg/models"
+	"fakorede-bolu/full-rest-api/pkg/models"
 	"fmt"
 	"log"
 	"os"
@@ -153,8 +153,6 @@ func (m *UserModel) GetByID(id int) (*models.User, error) {
 //  Params: True (id)
 func (m *UserModel) Update(id int, oldPassword, password string) (string, error) {
 	stmt := `UPDATE users SET password = $2 WHERE id = $1;`
-
-	// u := &models.User{}
 
 	u, err := m.GetByID(id)
 

@@ -24,7 +24,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./server/*go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/*go
 
 # Start a new stage from scratch
 FROM alpine:latest
@@ -36,6 +36,8 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/.env .
 COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/pkg ./pkg
+COPY --from=builder /app/tls ./tls
      
 
 # Expose port 4000 to the outside world
