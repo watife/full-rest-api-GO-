@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	utils "fakorede-bolu/full-rest-api/server/pkg/Utils"
-	"fakorede-bolu/full-rest-api/server/pkg/models"
+	utils "fakorede-bolu/full-rest-api/pkg/Utils"
+	"fakorede-bolu/full-rest-api/pkg/models"
 	"fmt"
 	"html/template"
 	"net/http"

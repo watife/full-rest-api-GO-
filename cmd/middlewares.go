@@ -1,11 +1,8 @@
 package main
 
 import (
-
-	// u "fakorede-bolu/full-rest-api/server/pkg/utils"
-
 	"context"
-	"fakorede-bolu/full-rest-api/server/pkg/models"
+	"fakorede-bolu/full-rest-api/pkg/models"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,6 +11,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
+// secure header
 func secureHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
@@ -24,6 +22,7 @@ func secureHeaders(next http.Handler) http.Handler {
 	})
 }
 
+// log resquest
 func (app *application) logRequest(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		app.infoLog.Printf("%s - %s %s %s", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
@@ -49,11 +48,7 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 	})
 }
 
-/**
- *
- *--------------------------------Authenticated-------------------------------
- */
-
+// Authenticate
 type contextKey string
 
 const contextKeyIsAuthenticated = contextKey("isAuthenticated")
@@ -90,7 +85,7 @@ func (app *application) verifyUserToken(next http.Handler) http.Handler {
 		if ok && token.Valid {
 			role, err := claims["role"].(string)
 
-			if err != true || role != "user" {
+			if err == false || role != "user" {
 				app.respondError(w, http.StatusForbidden, "Unauthorized")
 				return
 			}

@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"errors"
-	"fakorede-bolu/full-rest-api/server/pkg/models"
+	"fakorede-bolu/full-rest-api/pkg/models"
 	"fmt"
 )
 
