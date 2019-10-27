@@ -17,6 +17,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/jasonlvhit/gocron"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -200,4 +201,15 @@ func (app *application) sendEmail(m *utils.Email) (bool, error) {
 
 	return true, nil
 
+}
+
+func (app *application) cronn() {
+	fmt.Println("Job starts")
+	gocron.NewScheduler()
+	gocron.Every(1).Minute().Do(app.outBox)
+
+	_, time := gocron.NextRun()
+	fmt.Println(time)
+
+	<-gocron.Start()
 }
