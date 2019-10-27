@@ -7,6 +7,7 @@ services:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_NAME}
       - DATABASE_HOST=${DATABASE_HOST}
+    build: ./postgres
     ports:
       - 5432:5432
   # redis_database:
