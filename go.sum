@@ -33,18 +33,6 @@ github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+W
 github.com/onsi/ginkgo v1.10.1/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/gomega v1.7.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1CpauHY=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/revel/config v0.21.0 h1:Bw4iXLGAuD/Di2HEhPSOyDywrTlFIXUMbds91lXTtTU=
-github.com/revel/config v0.21.0/go.mod h1:GT4a9px5kDGRqLizcw/md0QFErrhen76toz4qS3oIoI=
-github.com/revel/cron v0.21.0 h1:qtQF7OrMsUWEZg6VNyEnE+NxH+q9QOXOqffyxo86p30=
-github.com/revel/cron v0.21.0/go.mod h1:WrSp8p1H1IfOGumbbDGrGf8dZLjNSnGSnwxTj3nG80I=
-github.com/revel/log15 v2.11.20+incompatible h1:JkA4tbwIo/UGEMumY50zndKq816RQW3LQ0wIpRc+32U=
-github.com/revel/log15 v2.11.20+incompatible/go.mod h1:l0WmLRs+IM1hBl4noJiBc2tZQiOgZyXzS1mdmFt+5Gc=
-github.com/revel/modules v0.21.0 h1:9hA0/Q1AMbVkwNKDc50quOU6p9JbzX6SO1aWGEM84NE=
-github.com/revel/modules v0.21.0/go.mod h1:UBlNmO9VGZo4j6Ptn2uC/26Iclefuic+V40jYRPBxQE=
-github.com/revel/pathtree v0.0.0-20140121041023-41257a1839e9 h1:/d6kfjzjyx19ieWqMOXHSTLFuRxLOH15ZubtcAXExKw=
-github.com/revel/pathtree v0.0.0-20140121041023-41257a1839e9/go.mod h1:TmlwoRLDvgRjoTe6rbsxIaka/CulzYrgfef7iNJcEWY=
-github.com/revel/revel v0.21.0 h1:E6kDJmpJSDb0F8XwbyG5h4ayzpZ+8Wcw2IiPZW/2qSc=
-github.com/revel/revel v0.21.0/go.mod h1:VZWJnHjpDEtuGUuZJ2NO42XryitrtwsdVaJxfDeo5yc=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/twinj/uuid v1.0.0 h1:fzz7COZnDrXGTAOHGuUGYd6sG+JMq+AoE7+Jlu0przk=
@@ -74,8 +62,6 @@ gopkg.in/go-playground/validator.v9 v9.30.0 h1:Wk0Z37oBmKj9/n+tPyBHZmeL19LaCoK3Q
 gopkg.in/go-playground/validator.v9 v9.30.0/go.mod h1:+c9/zcJMFNgbLvly1L1V+PpxWdVbfP1avr/N00E2vyQ=
 gopkg.in/natefinch/lumberjack.v2 v2.0.0 h1:1Lc07Kr7qY4U2YPouBjpCLxpiyxIVoxqXgkXLknAOE8=
 gopkg.in/natefinch/lumberjack.v2 v2.0.0/go.mod h1:l0ndWWf7gzL7RNwBG7wST/UCcT4T24xpD6X8LsfU/+k=
-gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5 h1:E846t8CnR+lv5nE+VuiKTDG/v1U2stad0QzddfJC7kY=
-gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5/go.mod h1:hiOFpYm0ZJbusNj2ywpbrXowU3G8U6GIQzqn2mw1UIE=
 gopkg.in/stack.v0 v0.0.0-20141108040640-9b43fcefddd0 h1:lMH45EKqD8Nf6LwoF+43YOKjOAEEHQRVgDyG8RCV4MU=
 gopkg.in/stack.v0 v0.0.0-20141108040640-9b43fcefddd0/go.mod h1:kl/bNzW/jgTgUOCGDj3XPn9/Hbfhw6pjfBRUnaTioFQ=
 gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7/go.mod h1:dt/ZhP58zS4L8KSrWDmTeBkI65Dw0HsyUHuEVlX15mw=

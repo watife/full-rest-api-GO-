@@ -25,15 +25,6 @@ type application struct {
 	inbox    *postgres.InboxModel
 }
 
-type ReminderEmails struct {
-	// Filtered
-}
-
-func (e ReminderEmails) Run() {
-	// Queries the DB
-	// Sends some email
-}
-
 func init() {
 	// loads values from .env into the system
 	if err := godotenv.Load(); err != nil {
@@ -51,11 +42,11 @@ func main() {
 	databaseName := os.Getenv("DATABASE_NAME")
 	databaseUser := os.Getenv("DATABASE_USER")
 	databaseHost := os.Getenv("DATABASE_HOST")
-	// databasePort := os.Getenv("DATABASE_PORT")
+	databasePort := os.Getenv("DATABASE_PORT")
 	databasePassword := os.Getenv("DATABASE_PASSWORD")
 
-	// dbConn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", databaseHost, databasePort, databaseUser, databaseName, databasePassword)
-	dbConn := "postgres://" + databaseUser + ":" + databasePassword + "@" + databaseHost + ":5432/" + databaseName + "?sslmode=disable"
+	dbConn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", databaseHost, databasePort, databaseUser, databaseName, databasePassword)
+	// dbConn := "postgres://" + databaseUser + ":" + databasePassword + "@" + databaseHost + databasePort + "/" + databaseName + "?sslmode=disable"
 
 	fmt.Println(dbConn)
 
@@ -109,8 +100,7 @@ func main() {
 		inbox:    &postgres.InboxModel{DB: db},
 	}
 
-	// outbox()
-
+	// start cronn job to send outbox to registered users
 	go app.cronn()
 
 	// custom server struct to make use of custom errorLog

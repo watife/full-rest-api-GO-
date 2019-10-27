@@ -41,3 +41,11 @@ Run:
 ```
 Docker compose up --build
 ```
+
+## NOTE
+To access created database:
+```
+1. docker-compose exec  postgres_database /bin/sh
+2. psql -d <name_of_db> -U <user_of_db> 
+
+```
