@@ -203,10 +203,6 @@ func (app *application) sendEmail(m *utils.Email) (bool, error) {
 
 }
 
-// func outbox() {
-// 	fmt.Println("I am runnning task.")
-// }
-
 func (app *application) cronn() {
 	fmt.Println("Job starts")
 	gocron.NewScheduler()

@@ -12,7 +12,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/jasonlvhit/gocron"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"gopkg.in/go-playground/validator.v9"
@@ -147,21 +146,3 @@ func openDB(dsn string) (*sql.DB, error) {
 
 	return db, nil
 }
-
-func task() {
-	fmt.Println("I am runnning task.")
-}
-
-func outbox() {
-	gocron.Every(1).Second().Do(task)
-	_, time := gocron.NextRun()
-	fmt.Println(time)
-	fmt.Println("I am runnning task.")
-
-	<-gocron.Start()
-}
-
-// func (app *application) cronn() {
-// 	fmt.Println("Job starts")
-
-// }
