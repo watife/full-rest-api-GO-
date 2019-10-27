@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fakorede-bolu/full-rest-api/pkg/models/postgres"
+
 	"flag"
 	"fmt"
 	"log"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/jasonlvhit/gocron"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"gopkg.in/go-playground/validator.v9"
@@ -21,6 +23,16 @@ type application struct {
 	infoLog  *log.Logger
 	todo     *postgres.TodoModel
 	user     *postgres.UserModel
+	inbox    *postgres.InboxModel
+}
+
+type ReminderEmails struct {
+	// Filtered
+}
+
+func (e ReminderEmails) Run() {
+	// Queries the DB
+	// Sends some email
 }
 
 func init() {
@@ -28,6 +40,7 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Print("No .env file found")
 	}
+
 }
 
 var validate *validator.Validate
@@ -62,7 +75,7 @@ func main() {
 	// Error log
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Lshortfile) //can also tage log.Llongfile for full path
 
-	// db connection
+	// pg db connection
 	db, err := openDB(*dsn)
 
 	if err != nil {
@@ -76,12 +89,30 @@ func main() {
 		CurvePreferences:         []tls.CurveID{tls.X25519, tls.CurveP256},
 	}
 
+	// pool := &redis.Pool{
+	// 	MaxIdle:   80,
+	// 	MaxActive: 12000,
+	// 	Dial: func() (redis.Conn, error) {
+	// 		conn, err := redis.Dial("tcp", "localhost:6379")
+	// 		if err != nil {
+	// 			log.Printf("ERROR: fail init redis pool: %s", err.Error())
+	// 			os.Exit(1)
+	// 		}
+	// 		return conn, err
+	// 	},
+	// }
+
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
 		todo:     &postgres.TodoModel{DB: db},
 		user:     &postgres.UserModel{DB: db},
+		inbox:    &postgres.InboxModel{DB: db},
 	}
+
+	// outbox()
+
+	go app.cronn()
 
 	// custom server struct to make use of custom errorLog
 	srv := &http.Server{
@@ -116,3 +147,21 @@ func openDB(dsn string) (*sql.DB, error) {
 
 	return db, nil
 }
+
+func task() {
+	fmt.Println("I am runnning task.")
+}
+
+func outbox() {
+	gocron.Every(1).Second().Do(task)
+	_, time := gocron.NextRun()
+	fmt.Println(time)
+	fmt.Println("I am runnning task.")
+
+	<-gocron.Start()
+}
+
+// func (app *application) cronn() {
+// 	fmt.Println("Job starts")
+
+// }

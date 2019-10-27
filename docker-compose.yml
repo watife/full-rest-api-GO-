@@ -1,6 +1,6 @@
 version: '3'
 services:
-  fullstack-postgres:
+  postgres_database:
     image: postgres:latest
     environment:
       - POSTGRES_USER=${DATABASE_USER}  
@@ -9,6 +9,13 @@ services:
       - DATABASE_HOST=${DATABASE_HOST}
     ports:
       - 5432:5432
+  # redis_database:
+  #   image: redis:5.0.6-alpine 
+  #   command: ["redis-server", "--appendonly", "yes"]
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
   app:
     container_name: full-rest-api
     build: .
@@ -17,9 +24,10 @@ services:
     ports:
       - "4000:4000"
     depends_on:
-      - fullstack-postgres
+      - postgres_database
+      # - redis_database
     environment:
       WAIT_HOSTS: ${DATABASE_HOST}:5432
 volumes:
   api:
-  database_postgres:
+  # redis_data:

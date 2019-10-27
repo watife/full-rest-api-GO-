@@ -6,7 +6,6 @@ import (
 	"fakorede-bolu/full-rest-api/pkg/models"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/lib/pq"
@@ -19,30 +18,29 @@ type UserModel struct {
 }
 
 func (m *UserModel) createTable() error {
-	env := os.Getenv("APP_ENV")
 
-	// d := `DROP TABLE users;`
-
-	c := `CREATE TABLE users (
+	u := `CREATE TABLE users (
 			id serial PRIMARY KEY,
 			email text UNIQUE NOT NULL,
 			password varchar(100) NOT NULL,
 			role text NOT NULL
 		);`
 
-	if env == "development" {
-		// _, err := m.DB.Exec(d)
+	i := `CREATE TABLE inbox (
+			email text UNIQUE NOT NULL,
+			send int NOT NULL,
+			user_id int NOT NULL
+		);`
 
-		_, err := m.DB.Exec(c)
+	_, err := m.DB.Exec(i)
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+	if err != nil {
+		return err
 	}
 
-	_, err := m.DB.Exec(c)
+	log.Println("table inbox create successfully")
+
+	_, err = m.DB.Exec(u)
 
 	if err != nil {
 		return err
@@ -54,15 +52,22 @@ func (m *UserModel) createTable() error {
 
 // Register : Create/save a new User.
 //  Method: POST
-func (m *UserModel) Register(email, password, role string) (*models.User, error) {
+func (m *UserModel) Register(email, password, role string, time int) (*models.User, error) {
 	m.createTable()
-	stmt := `INSERT INTO users (email, password, role) VALUES ($1, $2, $3) RETURNING id, email, role;`
+	stmt1 := `INSERT INTO users (email, password, role) VALUES ($1, $2, $3) RETURNING id, email, role;`
+	stmt2 := `INSERT INTO inbox (email, Send, user_id) VALUES ($1, $2, $3);`
+
+	tx, err := m.DB.Begin()
+	if err != nil {
+		return nil, models.ErrTransaction
+	}
 
 	u := &models.User{}
 
-	row, err := m.DB.Query(stmt, email, password, role)
+	row, err := tx.Query(stmt1, email, password, role)
 
 	if err != nil {
+		tx.Rollback()
 		var pgError *pq.Error
 
 		if errors.As(err, &pgError) {
@@ -80,6 +85,19 @@ func (m *UserModel) Register(email, password, role string) (*models.User, error)
 		if err := row.Scan(&u.ID, &u.Email, &u.Role); err != nil {
 			return nil, err
 		}
+	}
+
+	_, err = m.DB.Query(stmt2, email, time, u.ID)
+
+	if err != nil {
+		tx.Rollback()
+		return nil, models.ErrEmailQueue
+	}
+
+	err = tx.Commit()
+
+	if err != nil {
+		return nil, err
 	}
 
 	return u, nil
